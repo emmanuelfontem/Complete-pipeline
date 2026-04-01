@@ -3,11 +3,7 @@
 pipeline {
     agent any
     tools {
-        maven 'Maven'
-    }
-    environment {
-        DOCKER_REPO_SERVER = '330673547330.dkr.ecr.eu-central-1.amazonaws.com'
-        DOCKER_REPO = "${DOCKER_REPO_SERVER}/java-maven-app"
+        maven 'maven-3.9'
     }
     stages {
         stage('increment version') {
@@ -35,10 +31,10 @@ pipeline {
             steps {
                 script {
                     echo "building the docker image..."
-                    withCredentials([usernamePassword(credentialsId: 'ecr-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]){
-                        sh "docker build -t ${DOCKER_REPO}:${IMAGE_NAME} ."
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]){
+                        sh "docker build -t esendege/demo-app:${IMAGE_NAME} ."
                         sh 'echo $PASS | docker login -u $USER --password-stdin ${DOCKER_REPO_SERVER}'
-                        sh "docker push ${DOCKER_REPO}:${IMAGE_NAME}"
+                        sh "docker push esendege/demo-app:${IMAGE_NAME}"
                     }
                 }
             }
@@ -61,7 +57,7 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'gitlab-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]){
-                        sh "git remote set-url origin https://${USER}:${PASS}@gitlab.com/twn-devops-bootcamp/latest/11-eks/java-maven-app.git"
+                        sh "git remote set-url origin https://${USER}:${PASS}@github.com/emmanuelfontem/Complete-pipeline.git"
                         sh 'git add .'
                         sh 'git commit -m "ci: version bump"'
                         sh 'git push origin HEAD:jenkins-jobs'
