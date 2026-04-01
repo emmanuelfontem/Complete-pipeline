@@ -56,19 +56,12 @@ pipeline {
         stage('commit version update'){
             steps {
                 script {
-                    withCredentials([usernamePassword(credentialsId: 'gitlab-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]){
-                        sh '''
-                        git config --global user.email "jenkins@example.com"
-                        git config --global user.name "jenkins"
+                    withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]){
+                        sh "git remote set-url origin https://${USER}:${PASS}@github.com/emmanuelfontem/Complete-pipeline.git"
+                        sh 'git add .'
+                        sh 'git commit -m "ci: version bump"'
+                        sh 'git push origin HEAD:jenkins-jobs'
 
-                        git add .
-                        git commit -m "ci: version bump" || true
-
-                        git config credential.helper store
-                        echo "https://$USER:$PASS@github.com" > ~/.git-credentials
-
-                        git push origin HEAD:jenkins-jobs
-                        '''
                     }
                 }
             }
