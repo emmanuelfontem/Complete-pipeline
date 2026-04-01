@@ -5,6 +5,10 @@ pipeline {
     tools {
         maven 'maven-3.9'
     }
+    environment {
+        DOCKER_REPO_SERVER = '435037492762.dkr.ecr.us-east-2.amazonaws.com'
+        DOCKER_REPO = "${DOCKER_REPO_SERVER}/java-maven-app"
+    }
     stages {
         stage('increment version') {
             steps {
@@ -31,10 +35,10 @@ pipeline {
             steps {
                 script {
                     echo "building the docker image..."
-                    withCredentials([usernamePassword(credentialsId: 'dockerhub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]){
-                        sh "docker build -t esendege/demo-app:${IMAGE_NAME} ."
+                    withCredentials([usernamePassword(credentialsId: 'ecr-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]){
+                        sh "docker build -t ${DOCKER_REPO}:${IMAGE_NAME} ."
                         sh 'echo $PASS | docker login -u $USER --password-stdin ${DOCKER_REPO_SERVER}'
-                        sh "docker push esendege/demo-app:${IMAGE_NAME}"
+                        sh "docker push ${DOCKER_REPO}:${IMAGE_NAME}"
                     }
                 }
             }
@@ -42,7 +46,7 @@ pipeline {
         stage('deploy') {
             environment {
                 AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
-                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
+                AWS_SECRET_ACCESS_KEY = credentials('jenkins-aws_secret_access_key')
                 APP_NAME = 'java-maven-app'
             }
             steps {
@@ -57,14 +61,14 @@ pipeline {
             steps {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]){
-                        sh "git remote set-url origin https://${USER}:${PASS}@github.com/emmanuelfontem/Complete-pipeline.git"
+                        sh "git remote set-url origin https://${USER}:${PASS}@gitlab.com/twn-devops-bootcamp/latest/11-eks/java-maven-app.git"
                         sh 'git add .'
                         sh 'git commit -m "ci: version bump"'
                         sh 'git push origin HEAD:jenkins-jobs'
-
                     }
                 }
             }
         }
     }
 }
+
