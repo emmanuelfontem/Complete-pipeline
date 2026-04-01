@@ -64,7 +64,10 @@ pipeline {
                         git add .
                         git commit -m "ci: version bump" || true
 
-                        git push https://"$USER":"$PASS"@github.com/emmanuelfontem/Complete-pipeline.git HEAD:jenkins-jobs
+                        git config credential.helper store
+                        echo "https://$USER:$PASS@github.com" > ~/.git-credentials
+
+                        git push origin HEAD:jenkins-jobs
                         '''
                     }
                 }
