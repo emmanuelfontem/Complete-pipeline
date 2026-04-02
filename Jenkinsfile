@@ -62,14 +62,8 @@ pipeline {
                 script {
                     withCredentials([usernamePassword(credentialsId: 'github-credentials', passwordVariable: 'PASS', usernameVariable: 'USER')]){
                         sh "git remote set-url origin https://${USER}:${PASS}@github.com/emmanuelfontem/Complete-pipeline.git"
-
-                        sh 'git rebase --abort || true'
-                        sh 'rm -rf .git/rebase-merge'
-
                         sh 'git add .'
-                        sh 'git commit -m "ci: version bump" || true'
-
-                        sh 'git pull origin deploy-ecr --rebase'
+                        sh 'git commit -m "ci: version bump"'
                         sh 'git push origin HEAD:deploy-ecr'
                     }
                 }
