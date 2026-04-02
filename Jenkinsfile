@@ -64,7 +64,7 @@ pipeline {
                         sh "git remote set-url origin https://${USER}:${PASS}@github.com/emmanuelfontem/Complete-pipeline.git"
                         sh 'git add .'
                         sh 'git commit -m "ci: version bump"'
-                        sh 'git pull origin jenkins-jobs --rebase'
+                        sh 'git pull origin deploy-ecr --rebase'
                         sh 'git push origin HEAD:deploy-ecr'
                     }
                 }
