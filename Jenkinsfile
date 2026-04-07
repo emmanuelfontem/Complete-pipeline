@@ -33,7 +33,7 @@ pipeline {
                     echo "building the docker image..."
                     withCredentials([usernamePassword(credentialsId: 'dockerhub-repo', passwordVariable: 'PASS', usernameVariable: 'USER')]){
                         sh "docker build -t esendege/demo-app:${IMAGE_NAME} ."
-                        sh 'echo $PASS | docker login -u $USER --password-stdin ${DOCKER_REPO_SERVER}'
+                        sh 'echo $PASS | docker login -u $USER --password-stdin'
                         sh "docker push esendege/demo-app:${IMAGE_NAME}"
                     }
                 }
@@ -41,16 +41,16 @@ pipeline {
         }
         stage('deploy') {
             environment {
-                AWS_ACCESS_KEY_ID = credentials('jenkins_aws_access_key_id')
-                AWS_SECRET_ACCESS_KEY = credentials('jenkins_aws_secret_access_key')
                 APP_NAME = 'java-maven-app'
             }
             steps {
                 script {
                    echo 'deploying docker image...'
+                   withKubeConfig([credentialsId: 'lke-credentials', serverUrl: 'https://506f8f1f-2d81-4f77-a1af-85016e800572.cpc1-us-central-gw.linodelke.net']) {
                    sh 'envsubst < kubernetes/deployment.yaml | kubectl apply -f -'
                    sh 'envsubst < kubernetes/service.yaml | kubectl apply -f -'
                 }
+              }
             }
         }
         stage('commit version update'){
@@ -60,7 +60,7 @@ pipeline {
                         sh "git remote set-url origin https://${USER}:${PASS}@github.com/emmanuelfontem/Complete-pipeline.git"
                         sh 'git add .'
                         sh 'git commit -m "ci: version bump"'
-                        sh 'git push origin HEAD:jenkins-jobs'
+                        sh 'git push origin HEAD:deploy-lke-complete'
 
                     }
                 }
